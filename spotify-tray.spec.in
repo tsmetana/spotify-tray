@@ -1,0 +1,39 @@
+Name:		spotify-tray
+Version:	@VERSION@
+Release:	1%{?dist}
+Summary:	Tray icon for the Spotify client application
+
+License:	GPLv3+
+Source0:	%{name}-%{version}.tar.bz2
+
+BuildRequires:	gtk3-devel
+Requires:		spotify-client
+
+
+%description
+Adds a tray icon for the Spotify client application.
+
+
+%prep
+%setup -q
+
+
+%build
+%configure
+make %{?_smp_mflags}
+
+
+%install
+%make_install
+
+
+%files
+%doc README.md
+%license LICENSE
+%{_bindir}/spotify-tray
+
+
+%changelog
+* Fri Sep 07 2018 Tomas Smetana <tomas@smetana.name>
+- Built from the spec file template
+

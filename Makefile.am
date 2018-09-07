@@ -1,16 +1,6 @@
 SUBDIRS = src
 
-#mgiscdocdir = ${prefix}/doc/exp
-#mgiscdoc_DATA = \
-#	README\
-#	COPYING\
-#	AUTHORS\
-#	ChangeLog\
-#	INSTALL\
-#	NEWS\
-#	TODO
-
-#EXTRA_DIST = $(expdoc_DATA)
+EXTRA_DIST = spotify-tray.spec.in
 
 # Copy all the spec files. Of cource, only one is actually used.
 dist-hook:
@@ -19,3 +9,9 @@ dist-hook:
 			cp -p $$specfile $(distdir); \
 		fi \
 	done
+
+rpm:
+	rpmbuild -bb --build-in-place spotify-tray.spec
+
+clean-local:
+	-rm -f *.list

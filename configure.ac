@@ -16,4 +16,5 @@ PKG_CHECK_MODULES(X11, x11,,)
 AC_OUTPUT([
 Makefile
 src/Makefile
+spotify-tray.spec
 ])
