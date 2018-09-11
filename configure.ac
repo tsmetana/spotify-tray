@@ -17,4 +17,5 @@ AC_OUTPUT([
 Makefile
 src/Makefile
 spotify-tray.spec
+spotify-tray.desktop
 ])

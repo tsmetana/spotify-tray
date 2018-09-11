@@ -1,6 +1,11 @@
 SUBDIRS = src
 
-EXTRA_DIST = spotify-tray.spec.in
+EXTRA_DIST = spotify-tray.spec.in \
+			 spotify-tray.desktop.in
+
+desktopdir = $(datadir)/applications
+desktop_in_files = spotify-tray.desktop.in
+desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
 
 # Copy all the spec files. Of cource, only one is actually used.
 dist-hook:

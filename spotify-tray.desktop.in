@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Spotify Tray Icon
+Comment=Start Spotify client with tray icon
+Exec=spotify-tray
+Icon=spotify-client
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Categories=Audio;Music;Player;AudioVideo;
+StartupNotify=true

@@ -25,15 +25,19 @@ make %{?_smp_mflags}
 
 %install
 %make_install
+desktop-file-install --delete-original \
+	--dir $RPM_BUILD_ROOT%{_datadir}/applications \
+	$RPM_BUILD_ROOT%{_datadir}/applications/%{name}.desktop
 
 
 %files
 %doc README.md
 %license LICENSE
 %{_bindir}/spotify-tray
+%{_datadir}/applications/*%{name}.desktop
 
 
 %changelog
-* Fri Sep 07 2018 Tomas Smetana <tomas@smetana.name>
+* Fri Sep 07 2018 Tomas Smetana <tomas@smetana.name> - @VERSION@
 - Built from the spec file template
 

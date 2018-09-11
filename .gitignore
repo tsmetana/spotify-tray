@@ -19,3 +19,4 @@ src/spotify-tray
 stamp-h1
 *.list
 spotify-tray.spec
+spotify-tray.desktop
