@@ -80,7 +80,6 @@ int main(int argc, char **argv)
 	GError *err = NULL;
 	GOptionContext *context;
 	proxy_t *proxy;
-	proxy_metadata_t *metadata;
 	GdkWindow *client_window;
 
 	/* Parse command line options */
