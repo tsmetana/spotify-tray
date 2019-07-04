@@ -102,8 +102,10 @@ int main(int argc, char **argv)
 	 * client eventually. Bail out on failure */
 	if (!(client_window = get_client_window(client_app_argv))) {
 		g_critical("Could not find the Spotify client window: giving up");
+		g_free(client_app_argv[0]);
 		return 1;
 	}
+	g_free(client_app_argv[0]);
 	/* Connect to Spotify D-Bus interface. */
 	proxy = proxy_new_proxy();
 	if (!proxy)
