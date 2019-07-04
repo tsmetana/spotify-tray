@@ -46,7 +46,7 @@ static gboolean is_spotify_window(Display *display, Window win)
 {
 	unsigned char *class;
 	unsigned long length;
-	gboolean ret;
+	gboolean ret = FALSE;
 
 	Atom wm_class_prop =
 		gdk_x11_get_xatom_by_name_for_display(gdk_x11_lookup_xdisplay(display),
@@ -56,8 +56,8 @@ static gboolean is_spotify_window(Display *display, Window win)
 			wm_class_prop,
 			XA_STRING,
 			&length);
-
-	ret = (strncmp((char *)class, SPOTIFY_WM_CLASS, strlen(SPOTIFY_WM_CLASS)) == 0);
+	if (length > 0)
+		ret = (strncmp((char *)class, SPOTIFY_WM_CLASS, strlen(SPOTIFY_WM_CLASS)) == 0);
 	XFree(class);
 
 	return ret;
