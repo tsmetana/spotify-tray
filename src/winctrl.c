@@ -56,10 +56,12 @@ static gboolean is_spotify_window(Display *display, Window win)
 			wm_class_prop,
 			XA_STRING,
 			&length);
-	if (length > 0)
-		ret = (strncmp((char *)class, SPOTIFY_WM_CLASS, strlen(SPOTIFY_WM_CLASS)) == 0);
-	XFree(class);
-
+	if (length > 0) {
+		class[length - 1] = '\0';
+		ret = strlen((char *)class) == strlen(SPOTIFY_WM_CLASS) &&
+			(strncmp((char *)class, SPOTIFY_WM_CLASS, strlen(SPOTIFY_WM_CLASS)) == 0);
+		XFree(class);
+	}
 	return ret;
 }
 
