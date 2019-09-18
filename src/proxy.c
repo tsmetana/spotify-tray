@@ -94,64 +94,8 @@ static void update_metadata(proxy_metadata_t *metadata, GVariant *data_dict)
 			data_dict, &metadata->album_artist);
 }
 
-proxy_t *proxy_new_proxy(void)
-{
-	GDBusProxy *player_proxy;
-	proxy_t *ret = NULL;
-	GError *error = NULL;
-
-	player_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
-			G_DBUS_PROXY_FLAGS_NONE,
-			NULL, /* GDBusInterfaceInfo* */
-			SPOTIFY_SERVICE_NAME,
-			SPOTIFY_OBJECT_PATH,
-			SPOTIFY_PLAYER_INTERFACE,
-			NULL, /* GCancellable */
-			&error);
-	if (error) {
-		g_critical("Could not connect to Spotify client player D-Bus: %s",
-				error->message);
-		goto error;
-	}
-	
-	ret = g_malloc(sizeof(proxy_t));
-	ret->player = player_proxy;
-
-	return ret;
-error:
-	g_object_unref(player_proxy);
-	return NULL;
-}
-
-void proxy_free_proxy(proxy_t *proxy)
-{
-	if (!proxy)
-		return;
-	g_object_unref(proxy->player);
-	g_free(proxy);
-	proxy = NULL;
-}
-
-/* Returns new metadata -- the values might be empty/NULL on proxy error.
- * The metadate might be NULL on memory allocation error. */
-proxy_metadata_t *proxy_new_metadata(proxy_t *proxy)
-{
-	proxy_metadata_t *metadata;
-
-	if (!(metadata = g_malloc0(sizeof(proxy_metadata_t)))) {
-		g_critical("Could not allocate memory for the metadata struct");
-		return NULL;
-	}
-	if (!proxy_update_metadata(proxy, metadata)) {
-		g_critical("Failed to update metadata");
-	}
-	
-	return metadata;
-	
-}
-
 #define FREE_AND_NULL(__v) do { g_free(__v); __v = NULL; } while(0)
-void proxy_free_metadata_values(proxy_metadata_t *metadata)
+static void free_metadata_values(proxy_metadata_t *metadata)
 {
 	gint i;
 
@@ -174,14 +118,7 @@ void proxy_free_metadata_values(proxy_metadata_t *metadata)
 	FREE_AND_NULL(metadata->track_url);
 }
 
-void proxy_free_metadata(proxy_metadata_t *metadata)
-{
-	proxy_free_metadata_values(metadata);
-	g_free(metadata);
-	metadata = NULL;
-}
-
-gboolean proxy_update_metadata(proxy_t *proxy, proxy_metadata_t *metadata)
+static gboolean update_proxy_metadata(proxy_t *proxy)
 {
 	GVariant *result;
 
@@ -195,10 +132,34 @@ gboolean proxy_update_metadata(proxy_t *proxy, proxy_metadata_t *metadata)
 		g_critical("Unexpected metadata format");
 		return FALSE;
 	}
-	update_metadata(metadata, result);
+	free_metadata_values(proxy->metadata);
+	update_metadata(proxy->metadata, result);
 	g_variant_unref(result);
 
 	return TRUE;
+}
+
+
+/* Returns new metadata -- the values might be empty/NULL on proxy error.
+ * The metadate might be NULL on memory allocation error. */
+static proxy_metadata_t *create_proxy_metadata(proxy_t *proxy)
+{
+	if (!(proxy->metadata = g_malloc0(sizeof(proxy_metadata_t)))) {
+		g_critical("Could not allocate memory for the metadata struct");
+		return NULL;
+	}
+	if (!update_proxy_metadata(proxy)) {
+		g_critical("Failed to update metadata");
+	}
+
+	return proxy->metadata;
+}
+
+static void free_metadata(proxy_metadata_t *metadata)
+{
+	free_metadata_values(metadata);
+	g_free(metadata);
+	metadata = NULL;
 }
 
 void proxy_simple_method_call(proxy_t *proxy, proxy_simple_call_t call_num)
@@ -215,4 +176,55 @@ void proxy_simple_method_call(proxy_t *proxy, proxy_simple_call_t call_num)
 	if (error)
 		g_critical("D-Bus method '%s' call failed: %s",
 				proxy_simple_method_name[call_num], error->message);
+}
+
+static void *on_properties_changed(GDBusProxy *dbus_proxy,
+		GVariant *changed_properties, const gchar* const  *invalidated_properties,
+		proxy_t *proxy)
+{
+	if (!proxy->metadata)
+		return NULL;
+	update_proxy_metadata(proxy);
+
+	return NULL;
+}
+
+proxy_t *proxy_new_proxy(void)
+{
+	GDBusProxy *player_proxy;
+	proxy_t *ret = NULL;
+	GError *error = NULL;
+
+	player_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
+			G_DBUS_PROXY_FLAGS_NONE,
+			NULL, /* GDBusInterfaceInfo* */
+			SPOTIFY_SERVICE_NAME,
+			SPOTIFY_OBJECT_PATH,
+			SPOTIFY_PLAYER_INTERFACE,
+			NULL, /* GCancellable */
+			&error);
+	if (error) {
+		g_critical("Could not connect to Spotify client player D-Bus: %s",
+				error->message);
+		goto error;
+	}
+	ret = g_malloc(sizeof(proxy_t));
+	ret->player = player_proxy;
+	create_proxy_metadata(ret);
+	g_signal_connect(player_proxy, "g-properties-changed",
+			G_CALLBACK(on_properties_changed), ret);
+	return ret;
+error:
+	g_object_unref(player_proxy);
+	return NULL;
+}
+
+void proxy_free_proxy(proxy_t *proxy)
+{
+	if (!proxy)
+		return;
+	g_object_unref(proxy->player);
+	free_metadata(proxy->metadata);
+	g_free(proxy);
+	proxy = NULL;
 }

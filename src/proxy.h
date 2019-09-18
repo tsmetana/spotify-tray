@@ -21,6 +21,8 @@ typedef struct _proxy_metadata_s proxy_metadata_t;
 
 struct _proxy_s {
 	GDBusProxy *player;
+	proxy_metadata_t *metadata;
+
 };
 
 typedef struct _proxy_s proxy_t;
@@ -37,10 +39,6 @@ enum _proxy_simple_call_e {
 typedef enum _proxy_simple_call_e proxy_simple_call_t;
 
 proxy_t *proxy_new_proxy(void);
-proxy_metadata_t *proxy_new_metadata(proxy_t *proxy);
-void proxy_free_metadata(proxy_metadata_t *metadata);
-void proxy_free_metadata_values(proxy_metadata_t *metadata);
-gboolean proxy_update_metadata(proxy_t *proxy, proxy_metadata_t *metadata);
 void proxy_free_proxy(proxy_t *proxy);
 void proxy_simple_method_call(proxy_t *proxy, proxy_simple_call_t call_num);
 

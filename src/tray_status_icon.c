@@ -83,19 +83,16 @@ gboolean on_tooltip_query(GtkStatusIcon *status_icon, gint x, gint y,
 		gboolean keyboard_mode, GtkTooltip *tooltip, gpointer user_data)
 {
 	proxy_t *proxy = PROXY_T(user_data);
-	proxy_metadata_t *metadata = proxy_new_metadata(proxy);
 	gchar *tooltip_text;
 
-	if (!metadata || !metadata->artist) {
-		g_critical("Could not construct the tooltip");
+	if (!proxy->metadata || !proxy->metadata->artist) {
 		return FALSE;
 	}
 	
 	tooltip_text = g_strdup_printf("%s - %s\n%s",
-			metadata->artist[0], metadata->album, metadata->title);
+			proxy->metadata->artist[0], proxy->metadata->album, proxy->metadata->title);
 	gtk_tooltip_set_text(tooltip, tooltip_text);
 	g_free(tooltip_text);
-	proxy_free_metadata(metadata);
 
 	return TRUE;
 }
