@@ -78,21 +78,29 @@ static void on_activate(GtkStatusIcon *icon, gpointer user_data)
 	}
 }
 
-/* Contructs the tooltip showing some info about current track */
+/* Contructs the tooltip showing some info about current track.
+ * Would be great to show the album art but it's stored in locked database
+ * while Spotify client is running. Using the webpage referenced in the
+ * metadata is no-go. */
 gboolean on_tooltip_query(GtkStatusIcon *status_icon, gint x, gint y,
 		gboolean keyboard_mode, GtkTooltip *tooltip, gpointer user_data)
 {
 	proxy_t *proxy = PROXY_T(user_data);
-	gchar *tooltip_text;
+	gchar *tooltip_text, *tooltip_title, *tooltip_artist, *tooltip_album;
 
 	if (!proxy->metadata || !proxy->metadata->artist) {
 		return FALSE;
 	}
-	
-	tooltip_text = g_strdup_printf("%s - %s\n%s",
-			proxy->metadata->artist[0], proxy->metadata->album, proxy->metadata->title);
-	gtk_tooltip_set_text(tooltip, tooltip_text);
+	tooltip_title = g_markup_escape_text(proxy->metadata->title, -1);
+	tooltip_artist = g_markup_escape_text(proxy->metadata->artist[0], -1);
+	tooltip_album = g_markup_escape_text(proxy->metadata->album, -1);
+	tooltip_text = g_strdup_printf("<b>%s</b>\n%s - %s",
+			 tooltip_title, tooltip_artist, tooltip_album);
+	gtk_tooltip_set_markup(tooltip, tooltip_text);
 	g_free(tooltip_text);
+	g_free(tooltip_title);
+	g_free(tooltip_artist);
+	g_free(tooltip_album);
 
 	return TRUE;
 }
