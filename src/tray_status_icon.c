@@ -87,17 +87,20 @@ gboolean on_tooltip_query(GtkStatusIcon *status_icon, gint x, gint y,
 {
 	proxy_t *proxy = PROXY_T(user_data);
 	gchar *tooltip_text, *tooltip_title, *tooltip_artist, *tooltip_album;
+	gchar *artist_str;
 
 	if (!proxy->metadata || !proxy->metadata->artist) {
 		return FALSE;
 	}
 	tooltip_title = g_markup_escape_text(proxy->metadata->title, -1);
-	tooltip_artist = g_markup_escape_text(proxy->metadata->artist[0], -1);
+	artist_str = g_strjoinv(", ", proxy->metadata->album_artist);
+	tooltip_artist = g_markup_escape_text(artist_str, -1);
 	tooltip_album = g_markup_escape_text(proxy->metadata->album, -1);
 	tooltip_text = g_strdup_printf("<b>%s</b>\n%s - %s",
 			 tooltip_title, tooltip_artist, tooltip_album);
 	gtk_tooltip_set_markup(tooltip, tooltip_text);
 	g_free(tooltip_text);
+	g_free(artist_str);
 	g_free(tooltip_title);
 	g_free(tooltip_artist);
 	g_free(tooltip_album);

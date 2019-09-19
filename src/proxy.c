@@ -90,7 +90,7 @@ static void update_metadata(proxy_metadata_t *metadata, GVariant *data_dict)
 	metadata->disc_number =  metadata_get_int("xesam:discNumber", data_dict);
 	metadata->artist_num = metadata_dup_string_array("xesam:artist",
 			data_dict, &metadata->artist);
-	metadata->album_artist_num = metadata_dup_string_array("xesam:artist",
+	metadata->album_artist_num = metadata_dup_string_array("xesam:albumArtist",
 			data_dict, &metadata->album_artist);
 }
 
