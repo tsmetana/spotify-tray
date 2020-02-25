@@ -8,6 +8,7 @@
 #include "proxy.h"
 #include "tray_status_icon.h"
 #include "winctrl.h"
+#include "tray_dbus.h"
 
 #define DEFAULT_CLIENT_APP_PATH "spotify"
 #define CLIENT_FIND_ATTEMPTS 5
@@ -82,6 +83,7 @@ int main(int argc, char **argv)
 	GOptionContext *context;
 	proxy_t *proxy;
 	GdkWindow *client_window;
+	guint bus_id;
 
 	/* Parse command line options */
 	context = g_option_context_new("- system tray icon for "
@@ -99,12 +101,20 @@ int main(int argc, char **argv)
 	}
 
 	gtk_init(&argc, &argv);
+
+	if (tray_dbus_server_check_running()) {
+		g_debug("Another instance of the tray-icon is already running");
+		return 0;
+	}
 	/* Try to find the client application window; spawn a new Spotify
 	 * client eventually. Bail out on failure */
 	if (!(client_window = get_client_window(client_app_argv))) {
 		g_critical("Could not find the Spotify client window: giving up");
 		g_free(client_app_argv[0]);
 		return 1;
+	}
+	if ((bus_id = tray_dbus_server_new(client_window)) == 0) {
+		g_critical("Error starting D-Bus server");
 	}
 	g_free(client_app_argv[0]);
 	/* Connect to Spotify D-Bus interface. */
@@ -115,6 +125,7 @@ int main(int argc, char **argv)
 	new_tray_icon(proxy, client_window);
 	/* Start the main loop */
 	gtk_main();
+	tray_dbus_server_destroy(bus_id);
 	proxy_free_proxy(proxy);
 
 	return 0;

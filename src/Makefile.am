@@ -17,7 +17,9 @@ spotify_tray_SOURCES = \
 	proxy.h \
 	proxy.c \
 	winctrl.c \
-	winctrl.h
+	winctrl.h \
+	tray_dbus.c \
+	tray_dbus.h
 
 spotify_tray_LDFLAGS = \
 	$(GTK_LDFLAGS) $(X11_LDFLAGS) $(APPINDICATOR_CFLAGS)
