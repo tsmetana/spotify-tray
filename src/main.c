@@ -73,7 +73,8 @@ int main(int argc, char **argv)
 	gchar *client_app_path_opt = NULL;
 	GOptionEntry entries[] = {
 		{"client-path", 'c', 0, G_OPTION_ARG_STRING, &client_app_path_opt,
-			"Path to the Spotify client application, default \"spotify\"",
+			"Path to the Spotify client application, default \""
+				DEFAULT_CLIENT_APP_PATH "\"",
 			"<path>"},
 		{NULL}
 	};
