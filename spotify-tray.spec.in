@@ -38,6 +38,6 @@ desktop-file-install --delete-original \
 
 
 %changelog
-* Fri Sep 07 2018 Tomas Smetana <tomas@smetana.name> - @VERSION@
+* @BUILD_DATE@ Tomas Smetana <tomas@smetana.name> - @VERSION@
 - Built from the spec file template
 
