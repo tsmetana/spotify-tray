@@ -10,12 +10,15 @@
 #define TRAY_OBJECT_PATH "/name/smetana/SpotifyTray"
 #define TRAY_INTERFACE "name.smetana.SpotifyTray"
 #define TRAY_RAISE_WIN_METHOD "RaiseWindow"
+#define TRAY_HIDE_WIN_METHOD "HideWindow"
 
 static GDBusNodeInfo *introspection_data = NULL;
 static const gchar introspection_xml[] =
 	"<node>"
 	"  <interface name='" TRAY_INTERFACE "'>"
 	"    <method name='" TRAY_RAISE_WIN_METHOD "'>"
+	"    </method>"
+	"    <method name='" TRAY_HIDE_WIN_METHOD "'>"
 	"    </method>"
 	"  </interface>"
 	"</node>";
@@ -31,6 +34,11 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
 	if (g_strcmp0(method_name, TRAY_RAISE_WIN_METHOD) == 0) {
 		if (!gdk_window_is_visible(client_window)) {
 			gdk_window_show(client_window);
+		}
+		g_dbus_method_invocation_return_value(invocation, NULL);
+	} else if (g_strcmp0(method_name, TRAY_HIDE_WIN_METHOD) == 0) {
+		if (gdk_window_is_visible(client_window)) {
+			gdk_window_hide(client_window);
 		}
 		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
