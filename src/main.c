@@ -70,13 +70,20 @@ GdkWindow *get_client_window(gchar **client_app_argv)
 
 int main(int argc, char **argv)
 {
-	gchar *client_app_argv[2] = {NULL, NULL};
+	gchar **client_app_argv = NULL;
 	gchar *client_app_path_opt = NULL;
+	gchar **client_app_args_opt = NULL;
+	guint n_opts, i;
 	GOptionEntry entries[] = {
 		{"client-path", 'c', 0, G_OPTION_ARG_STRING, &client_app_path_opt,
 			"Path to the Spotify client application, default \""
 				DEFAULT_CLIENT_APP_PATH "\"",
 			"<path>"},
+		{G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY,
+			&client_app_args_opt,
+			"The rest of the command line will be passed "
+				"to the application as arguments",
+			""},
 		{NULL}
 	};
 	GError *err = NULL;
@@ -88,17 +95,27 @@ int main(int argc, char **argv)
 	/* Parse command line options */
 	context = g_option_context_new("- system tray icon for "
 			"the Spotify client application");
+	g_option_context_set_summary(context, "Anything after the \"--\" option "
+			"would be passed to the called client application as arguments.");
 	g_option_context_add_group(context, gtk_get_option_group(TRUE));
 	g_option_context_add_main_entries(context, entries, NULL);
 	g_option_context_parse(context, &argc, &argv, &err);
 	g_option_context_free(context);
 
 	/* Prepare argv to start the Spotify client application */
+	if (client_app_args_opt)
+		n_opts = g_strv_length(client_app_args_opt);
+	else
+		n_opts = 0U;
+	client_app_argv = g_malloc(sizeof(gchar *) * (n_opts + 2));
 	if (client_app_path_opt) {
 		client_app_argv[0] = g_strdup(client_app_path_opt);
 	} else {
 		client_app_argv[0] = g_strdup(DEFAULT_CLIENT_APP_PATH);
 	}
+	for (i = 1; i < n_opts + 1; i++)
+		client_app_argv[i] = client_app_args_opt[i - 1];
+	client_app_argv[n_opts + 1] = NULL;
 
 	gtk_init(&argc, &argv);
 
@@ -116,7 +133,12 @@ int main(int argc, char **argv)
 	if ((bus_id = tray_dbus_server_new(client_window)) == 0) {
 		g_critical("Error starting D-Bus server");
 	}
-	g_free(client_app_argv[0]);
+
+	for (i = 0; i < n_opts + 1; i++)
+		g_free(client_app_argv[i]);
+	g_free(client_app_argv);
+	g_free(client_app_args_opt);
+
 	/* Connect to Spotify D-Bus interface. */
 	proxy = proxy_new_proxy();
 	if (!proxy)
