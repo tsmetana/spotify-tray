@@ -74,11 +74,15 @@ int main(int argc, char **argv)
 	gchar *client_app_path_opt = NULL;
 	gchar **client_app_args_opt = NULL;
 	guint n_opts, i;
+	gboolean toggle_window = FALSE;
 	GOptionEntry entries[] = {
 		{"client-path", 'c', 0, G_OPTION_ARG_STRING, &client_app_path_opt,
 			"Path to the Spotify client application, default \""
 				DEFAULT_CLIENT_APP_PATH "\"",
 			"<path>"},
+		{"toggle", 't', 0, G_OPTION_ARG_NONE, &toggle_window,
+			"Toggle window visibility if a running instance is detected",
+			NULL},
 		{G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY,
 			&client_app_args_opt,
 			"The rest of the command line will be passed "
@@ -119,7 +123,7 @@ int main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	if (tray_dbus_server_check_running()) {
+	if (tray_dbus_server_check_running(toggle_window)) {
 		g_debug("Another instance of the tray-icon is already running");
 		return 0;
 	}

@@ -11,6 +11,7 @@
 #define TRAY_INTERFACE "name.smetana.SpotifyTray"
 #define TRAY_RAISE_WIN_METHOD "RaiseWindow"
 #define TRAY_HIDE_WIN_METHOD "HideWindow"
+#define TRAY_TOGGLE_WIN_METHOD "ToggleWindow"
 
 static GDBusNodeInfo *introspection_data = NULL;
 static const gchar introspection_xml[] =
@@ -19,6 +20,8 @@ static const gchar introspection_xml[] =
 	"    <method name='" TRAY_RAISE_WIN_METHOD "'>"
 	"    </method>"
 	"    <method name='" TRAY_HIDE_WIN_METHOD "'>"
+	"    </method>"
+	"    <method name='" TRAY_TOGGLE_WIN_METHOD "'>"
 	"    </method>"
 	"  </interface>"
 	"</node>";
@@ -39,6 +42,13 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
 	} else if (g_strcmp0(method_name, TRAY_HIDE_WIN_METHOD) == 0) {
 		if (gdk_window_is_visible(client_window)) {
 			gdk_window_hide(client_window);
+		}
+		g_dbus_method_invocation_return_value(invocation, NULL);
+	} else if (g_strcmp0(method_name, TRAY_TOGGLE_WIN_METHOD) == 0) {
+		if (gdk_window_is_visible(client_window)) {
+			gdk_window_hide(client_window);
+		} else {
+			gdk_window_show(client_window);
 		}
 		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
@@ -98,11 +108,12 @@ void tray_dbus_server_destroy(guint owner_id)
 	g_dbus_node_info_unref(introspection_data);
 }
 
-gboolean tray_dbus_server_check_running(void)
+gboolean tray_dbus_server_check_running(gboolean toggle)
 {
 	GDBusProxy *proxy;
 	gboolean ret = FALSE;
 	GError *error = NULL;
+	const gchar *method = toggle ? TRAY_TOGGLE_WIN_METHOD : TRAY_RAISE_WIN_METHOD;
 
 	proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
 			G_DBUS_PROXY_FLAGS_NONE,
@@ -115,15 +126,14 @@ gboolean tray_dbus_server_check_running(void)
 	if (!proxy || error)
 		goto out;
 	g_dbus_proxy_call_sync(proxy,
-			TRAY_RAISE_WIN_METHOD,
+			method,
 			NULL,
 			G_DBUS_CALL_FLAGS_NONE,
 			-1,
 			NULL,
 			&error);
 	if (error) {
-		g_debug("D-Bus method '%s' call failed: %s",
-				TRAY_RAISE_WIN_METHOD, error->message);
+		g_debug("D-Bus method '%s' call failed: %s", method, error->message);
 		g_error_free(error);
 	} else {
 		ret = TRUE;
