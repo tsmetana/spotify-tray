@@ -75,6 +75,7 @@ int main(int argc, char **argv)
 	gchar **client_app_args_opt = NULL;
 	guint n_opts, i;
 	gboolean toggle_window = FALSE;
+	gboolean hide_on_start = FALSE;
 	GOptionEntry entries[] = {
 		{"client-path", 'c', 0, G_OPTION_ARG_STRING, &client_app_path_opt,
 			"Path to the Spotify client application, default \""
@@ -82,6 +83,9 @@ int main(int argc, char **argv)
 			"<path>"},
 		{"toggle", 't', 0, G_OPTION_ARG_NONE, &toggle_window,
 			"Toggle window visibility if a running instance is detected",
+			NULL},
+		{"minimized", 'm', 0, G_OPTION_ARG_NONE, &hide_on_start,
+			"Hide the client application after it's detected",
 			NULL},
 		{G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY,
 			&client_app_args_opt,
@@ -134,6 +138,9 @@ int main(int argc, char **argv)
 		g_free(client_app_argv[0]);
 		return 1;
 	}
+	if (hide_on_start)
+		gdk_window_hide(client_window);
+
 	if ((bus_id = tray_dbus_server_new(client_window)) == 0) {
 		g_critical("Error starting D-Bus server");
 	}
