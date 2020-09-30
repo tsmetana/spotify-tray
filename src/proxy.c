@@ -13,7 +13,7 @@ static const gchar *proxy_simple_method_name[] = {
 	[PROXY_CALL_PLAY] = "Play",
 	[PROXY_CALL_PAUSE] = "Pause",
 	[PROXY_CALL_NEXT] = "Next",
-	[PROXY_CALL_PREV] = "Prev",
+	[PROXY_CALL_PREV] = "Previous",
 	[PROXY_CALL_STOP] = "Stop"
 };
 
