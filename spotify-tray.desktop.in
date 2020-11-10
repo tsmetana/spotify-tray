@@ -2,7 +2,7 @@
 Name=Spotify Tray Icon
 Comment=Start Spotify client with tray icon
 Exec=spotify-tray
-Icon=spotify-client
+Icon=spotify
 Terminal=false
 X-MultipleArgs=false
 Type=Application
