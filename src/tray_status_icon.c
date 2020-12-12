@@ -76,6 +76,10 @@ static void on_activate(GtkStatusIcon *icon, gpointer user_data)
 	} else {
 		gdk_window_show(client_window);
 	}
+	/* If the window is minimized, show it back */
+	if (gdk_window_get_state(client_window) &
+			(GDK_WINDOW_STATE_ICONIFIED|GDK_WINDOW_STATE_WITHDRAWN))
+		gdk_window_deiconify(client_window);
 }
 
 /* Contructs the tooltip showing some info about current track.
