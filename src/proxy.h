@@ -31,6 +31,7 @@ typedef struct _proxy_s proxy_t;
 enum _proxy_simple_call_e {
 	PROXY_CALL_PLAY,
 	PROXY_CALL_PAUSE,
+	PROXY_CALL_PLAYPAUSE,
 	PROXY_CALL_NEXT,
 	PROXY_CALL_PREV,
 	PROXY_CALL_STOP

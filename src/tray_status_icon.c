@@ -86,7 +86,7 @@ static void on_activate(GtkStatusIcon *icon, gpointer user_data)
  * Would be great to show the album art but it's stored in locked database
  * while Spotify client is running. Using the webpage referenced in the
  * metadata is no-go. */
-gboolean on_tooltip_query(GtkStatusIcon *status_icon, gint x, gint y,
+static gboolean on_tooltip_query(GtkStatusIcon *status_icon, gint x, gint y,
 		gboolean keyboard_mode, GtkTooltip *tooltip, gpointer user_data)
 {
 	proxy_t *proxy = PROXY_T(user_data);
@@ -111,6 +111,33 @@ gboolean on_tooltip_query(GtkStatusIcon *status_icon, gint x, gint y,
 
 	return TRUE;
 }
+
+
+/* Mouse middle button click: toggle play / pause */
+static gboolean on_button_release(GtkStatusIcon *status_icon,
+		GdkEvent *event, gpointer user_data)
+{
+	if (event->button.button == 2) {
+		proxy_simple_method_call(PROXY_T(user_data), PROXY_CALL_PLAYPAUSE);
+	}
+
+	return TRUE;
+}
+
+
+/* Mouse wheel event: switch to next/previous track */
+static gboolean on_scroll(GtkStatusIcon *status_icon,
+		GdkEvent *event, gpointer user_data)
+{
+	if (event->scroll.direction == GDK_SCROLL_UP) {
+		proxy_simple_method_call(PROXY_T(user_data), PROXY_CALL_NEXT);
+	} else if (event->scroll.direction == GDK_SCROLL_DOWN) {
+		proxy_simple_method_call(PROXY_T(user_data), PROXY_CALL_PREV);
+	}
+
+	return TRUE;
+}
+
 
 /* Set up the right-click popup menu. */
 static GtkMenu *new_popup_menu(proxy_t *proxy, GdkWindow *client_window)
@@ -192,6 +219,10 @@ void new_tray_icon(proxy_t *proxy, GdkWindow *client_window)
 		G_CALLBACK(on_popup), new_popup_menu(proxy, client_window));
 	g_signal_connect((gpointer) tray_icon, "activate",
 		G_CALLBACK(on_activate), client_window);
+	g_signal_connect((gpointer) tray_icon, "button-release-event",
+		G_CALLBACK(on_button_release), proxy);
+	g_signal_connect((gpointer) tray_icon, "scroll-event",
+		G_CALLBACK(on_scroll), proxy);
 	g_signal_connect((gpointer) tray_icon, "query-tooltip",
 		G_CALLBACK(on_tooltip_query), proxy);
 }
