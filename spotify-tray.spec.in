@@ -20,7 +20,7 @@ Adds a tray icon for the Spotify client application.
 
 %build
 %configure
-make %{?_smp_mflags}
+%make_build
 
 
 %install
