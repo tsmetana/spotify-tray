@@ -69,20 +69,23 @@ static gboolean is_spotify_window(Display *display, Window win)
 /* For the given X11 window on given display, get its PID */
 static unsigned long get_window_pid(Display *display, Window win)
 {
-	unsigned char *class;
+	unsigned char *pid_prop_val;
 	unsigned long length;
 	unsigned long pid = 0UL;
 
-	Atom wm_class_prop =
+	Atom pid_prop =
 		gdk_x11_get_xatom_by_name_for_display(gdk_x11_lookup_xdisplay(display),
 				"_NET_WM_PID");
-	class = get_x_property(display,
+	pid_prop_val = get_x_property(display,
 			win,
-			wm_class_prop,
+			pid_prop,
 			XA_CARDINAL,
 			&length);
-	if ((length > 0) && class) {
-		pid = class[0] + (class[1]<<8) + (class[2]<<16) + (class[3]<<24);
+	if ((length > 0) && pid_prop_val) {
+		pid = pid_prop_val[0]
+			+ (pid_prop_val[1]<<8)
+			+ (pid_prop_val[2]<<16)
+			+ (pid_prop_val[3]<<24);
 		g_debug("Class pid %lu", pid);
 	}
 
