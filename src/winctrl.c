@@ -65,15 +65,39 @@ static gboolean is_spotify_window(Display *display, Window win)
 	return ret;
 }
 
+
+/* For the given X11 window on given display, get its PID */
+static unsigned long get_window_pid(Display *display, Window win)
+{
+	unsigned char *class;
+	unsigned long length;
+	unsigned long pid = 0UL;
+
+	Atom wm_class_prop =
+		gdk_x11_get_xatom_by_name_for_display(gdk_x11_lookup_xdisplay(display),
+				"_NET_WM_PID");
+	class = get_x_property(display,
+			win,
+			wm_class_prop,
+			XA_CARDINAL,
+			&length);
+	if ((length > 0) && class) {
+		pid = class[0] + (class[1]<<8) + (class[2]<<16) + (class[3]<<24);
+		g_debug("Class pid %lu", pid);
+	}
+
+	return pid;
+}
+
+
 /* Use X11 to find the Spotify client window and get a GDK window for it.
  * Returns the GdkWindow if found, NULL otherwise. */
-GdkWindow *winctrl_get_client(void)
+void winctrl_get_client(win_client_t *win_client)
 {
 	Atom win_list_prop;
 	Display *display;
 	unsigned long length, i;
 	Window *win_list;
-	GdkWindow *ret_win = NULL;
 
 	display = gdk_x11_get_default_xdisplay();
 
@@ -90,11 +114,10 @@ GdkWindow *winctrl_get_client(void)
 	 * to the Spotify client. */
 	for (i = 0; i < length; i++)
 		if (is_spotify_window(display, win_list[i])) {
-			ret_win = gdk_x11_window_foreign_new_for_display(
+			win_client->window = gdk_x11_window_foreign_new_for_display(
 					gdk_x11_lookup_xdisplay(display), win_list[i]);
+			win_client->pid = get_window_pid(display, win_list[i]);
 			break;
 		}
 	XFree(win_list);
-	
-	return ret_win;
 }

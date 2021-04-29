@@ -14,25 +14,27 @@
 #define CLIENT_FIND_ATTEMPTS 5
 
 /* Gets called when the Spotify client exits. */
-void on_client_app_exit(GPid pid, gint status, gpointer user_data)
+static void on_child_exit(GPid pid, gint status, gpointer user_data)
 {
+	g_debug("Watched process %d exited", pid);
 	waitpid((pid_t) pid, NULL, 0);
 	g_spawn_close_pid(pid);
-	gtk_main_quit();
 }
+
 
 /* Try to get the GdkWindow for the Spotify client application, try to
  * spawn a new process using the client_app_argv if the window is not found
  * at the first attempt */
-GdkWindow *get_client_window(gchar **client_app_argv)
+void get_client_window(win_client_t *win_client, gchar **client_app_argv)
 {
 	GPid client_pid;
-	GdkWindow *client_window = NULL;
 	GError *err = NULL;
 	gint i;
+	win_client_t found_client = { NULL, 0 };
 
 	/* Try to get the window */
-	if (!(client_window = winctrl_get_client())) {
+	winctrl_get_client(&found_client);
+	if (!(found_client.window)) {
 		/* No window found: launch Spotify client app. */
 		if (!g_spawn_async(NULL, /* work dir (doesn't matter: inherit') */
 					client_app_argv, /* argv */
@@ -43,16 +45,17 @@ GdkWindow *get_client_window(gchar **client_app_argv)
 					&client_pid, /* store pid of the client app */
 					&err)) {
 			g_critical("Failed to start the client application: %s", err->message);
-			return NULL;
+			goto error;
 		} else {
 			/* App launched, watch for its exit. */
-			g_child_watch_add(client_pid, on_client_app_exit, NULL);
+			g_child_watch_add(client_pid, on_child_exit, NULL);
 		}
-		/* App launched, try to find its window. */
+		/* App launched, it double forks; need to find the window and PID */
 		for (i = 0; i < CLIENT_FIND_ATTEMPTS; i++) {
 			/* Spotify takes time to start up, so wait a while. */
 			g_usleep(5E5); /* 0.5 sec */
-			if (!(client_window = winctrl_get_client())) {
+			winctrl_get_client(&found_client);
+			if (!(found_client.window)) {
 				/* Still nothing, try again. */
 				g_warning("Could not find the Spotify client window: "
 						"attempting to launch the application, attempt %d/%d",
@@ -63,8 +66,9 @@ GdkWindow *get_client_window(gchar **client_app_argv)
 			}
 		}
 	}
-
-	return client_window;
+error:
+	win_client->window = found_client.window;
+	win_client->pid = found_client.pid;
 }
 
 
@@ -97,7 +101,7 @@ int main(int argc, char **argv)
 	GError *err = NULL;
 	GOptionContext *context;
 	proxy_t *proxy;
-	GdkWindow *client_window;
+	win_client_t win_client = { NULL, 0 };
 	guint bus_id;
 
 	/* Parse command line options */
@@ -133,15 +137,16 @@ int main(int argc, char **argv)
 	}
 	/* Try to find the client application window; spawn a new Spotify
 	 * client eventually. Bail out on failure */
-	if (!(client_window = get_client_window(client_app_argv))) {
+	get_client_window(&win_client, client_app_argv);
+	if (!win_client.window) {
 		g_critical("Could not find the Spotify client window: giving up");
 		g_free(client_app_argv[0]);
 		return 1;
 	}
 	if (hide_on_start)
-		gdk_window_hide(client_window);
+		gdk_window_hide(win_client.window);
 
-	if ((bus_id = tray_dbus_server_new(client_window)) == 0) {
+	if ((bus_id = tray_dbus_server_new(win_client.window)) == 0) {
 		g_critical("Error starting D-Bus server");
 	}
 
@@ -151,11 +156,11 @@ int main(int argc, char **argv)
 	g_free(client_app_args_opt);
 
 	/* Connect to Spotify D-Bus interface. */
-	proxy = proxy_new_proxy();
+	proxy = proxy_new_proxy(win_client.pid);
 	if (!proxy)
 		return 2;
 	/* Set up the tray status icon */
-	new_tray_icon(proxy, client_window);
+	new_tray_icon(proxy, win_client.window);
 	/* Start the main loop */
 	gtk_main();
 	tray_dbus_server_destroy(bus_id);

@@ -1,6 +1,8 @@
 #ifndef _SPOTIFY_PROXY_H
 #define _SPOTIFY_PROXY_H
 
+#define PROCFS_PREFIX "/proc"
+
 struct _proxy_metadata_s {
 	gchar *track_id;
 	guint64 length;
@@ -20,6 +22,7 @@ struct _proxy_metadata_s {
 typedef struct _proxy_metadata_s proxy_metadata_t;
 
 struct _proxy_s {
+	GPid pid;
 	GDBusProxy *player;
 	proxy_metadata_t *metadata;
 
@@ -39,7 +42,7 @@ enum _proxy_simple_call_e {
 
 typedef enum _proxy_simple_call_e proxy_simple_call_t;
 
-proxy_t *proxy_new_proxy(void);
+proxy_t *proxy_new_proxy(GPid app_pid);
 void proxy_free_proxy(proxy_t *proxy);
 void proxy_simple_method_call(proxy_t *proxy, proxy_simple_call_t call_num);
 

@@ -3,6 +3,7 @@
 #endif
 
 #include <gio/gio.h>
+#include <gtk/gtk.h>
 #include "proxy.h"
 
 #define SPOTIFY_SERVICE_NAME "org.mpris.MediaPlayer2.spotify"
@@ -122,10 +123,22 @@ static void free_metadata_values(proxy_metadata_t *metadata)
 static gboolean update_proxy_metadata(proxy_t *proxy)
 {
 	GVariant *result;
+	gchar *proc_dir_path;
 
 	result = g_dbus_proxy_get_cached_property(proxy->player, "Metadata");
 	if (!result) {
 		g_critical("Failed to retrieve the Metadata property");
+		/* It is possible the Spotify app already exited or is exiting
+		 * lets wait a while and check the proc fs for the pid of the
+		 * Spotify app. If not found, quit. */
+		proc_dir_path = g_strdup_printf(PROCFS_PREFIX "/%d", proxy->pid);
+		g_usleep(5E5);
+		if (!g_file_test(proc_dir_path,
+					G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)) {
+			g_critical("The applicaiton has exited, quitting.");
+			gtk_main_quit();
+		}
+		g_free(proc_dir_path);
 		return FALSE;
 	}
 	if (!g_variant_is_of_type(result, G_VARIANT_TYPE_VARDICT)){
@@ -190,7 +203,7 @@ static void *on_properties_changed(GDBusProxy *dbus_proxy,
 	return NULL;
 }
 
-proxy_t *proxy_new_proxy(void)
+proxy_t *proxy_new_proxy(GPid app_pid)
 {
 	GDBusProxy *player_proxy;
 	proxy_t *ret = NULL;
@@ -211,6 +224,7 @@ proxy_t *proxy_new_proxy(void)
 	}
 	ret = g_malloc(sizeof(proxy_t));
 	ret->player = player_proxy;
+	ret->pid = app_pid;
 	create_proxy_metadata(ret);
 	g_signal_connect(player_proxy, "g-properties-changed",
 			G_CALLBACK(on_properties_changed), ret);
