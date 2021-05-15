@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 		{"icon", 'i', 0, G_OPTION_ARG_STRING, &icon_path_opt,
 			"Use the given file for the status icon, default is autodetect "
 			"from the GTK+ theme",
-			NULL},
+			"<path>"},
 		{"toggle", 't', 0, G_OPTION_ARG_NONE, &toggle_window,
 			"Toggle window visibility if a running instance is detected",
 			NULL},
