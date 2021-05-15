@@ -198,8 +198,10 @@ static const gchar *lookup_icon(void)
 	guint i;
 
 	for (i = 0; icon_name[i] != NULL; i++)
-		if (gtk_icon_theme_has_icon(theme, icon_name[i]))
+		if (gtk_icon_theme_has_icon(theme, icon_name[i])) {
+			g_debug("Found icon: %s", icon_name[i]);
 			return icon_name[i];
+		}
 	g_critical("Could not find any suitable icon file");
 
 	return NULL;
@@ -208,11 +210,15 @@ static const gchar *lookup_icon(void)
 /* Creates a new tray icon: assumes the Spotify client is properly installed
  * and uses its icon. Installs the popup_menu as the right-click menu and
  * lets left click to show/hide the Spotify cient window. */
-void new_tray_icon(proxy_t *proxy, GdkWindow *client_window)
+void new_tray_icon(proxy_t *proxy, GdkWindow *client_window,
+		const gchar *icon_file)
 {
 	GtkStatusIcon *tray_icon = gtk_status_icon_new();
 
-	gtk_status_icon_set_from_icon_name(tray_icon, lookup_icon());
+	if (!icon_file)
+		gtk_status_icon_set_from_icon_name(tray_icon, lookup_icon());
+	else
+		gtk_status_icon_set_from_file(tray_icon, icon_file);
 	gtk_status_icon_set_has_tooltip(tray_icon, TRUE);
 	gtk_status_icon_set_visible(tray_icon, TRUE);
 	g_signal_connect((gpointer) tray_icon, "popup-menu",

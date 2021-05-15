@@ -76,6 +76,7 @@ int main(int argc, char **argv)
 {
 	gchar **client_app_argv = NULL;
 	gchar *client_app_path_opt = NULL;
+	gchar *icon_path_opt = NULL;
 	gchar **client_app_args_opt = NULL;
 	guint n_opts, i;
 	gboolean toggle_window = FALSE;
@@ -85,6 +86,10 @@ int main(int argc, char **argv)
 			"Path to the Spotify client application, default \""
 				DEFAULT_CLIENT_APP_PATH "\"",
 			"<path>"},
+		{"icon", 'i', 0, G_OPTION_ARG_STRING, &icon_path_opt,
+			"Use the given file for the status icon, default is autodetect "
+			"from the GTK+ theme",
+			NULL},
 		{"toggle", 't', 0, G_OPTION_ARG_NONE, &toggle_window,
 			"Toggle window visibility if a running instance is detected",
 			NULL},
@@ -160,7 +165,7 @@ int main(int argc, char **argv)
 	if (!proxy)
 		return 2;
 	/* Set up the tray status icon */
-	new_tray_icon(proxy, win_client.window);
+	new_tray_icon(proxy, win_client.window, icon_path_opt);
 	/* Start the main loop */
 	gtk_main();
 	tray_dbus_server_destroy(bus_id);
