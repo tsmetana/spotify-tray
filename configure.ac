@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(spotify-tray,1.3.1,,)
+AC_INIT(spotify-tray,1.3.2,,)
 AM_INIT_AUTOMAKE([foreign])
 AC_PREREQ(2.69)
 AC_CONFIG_HEADERS(config.h)
