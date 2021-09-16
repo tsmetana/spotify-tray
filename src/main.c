@@ -3,6 +3,7 @@
 #endif
 
 #include <gtk/gtk.h>
+#include <gdk/gdkx.h>
 #include <sys/wait.h>
 
 #include "proxy.h"
@@ -108,6 +109,7 @@ int main(int argc, char **argv)
 	proxy_t *proxy;
 	win_client_t win_client = { NULL, 0 };
 	guint bus_id;
+	GdkDisplay *display;
 
 	/* Parse command line options */
 	context = g_option_context_new("- system tray icon for "
@@ -134,10 +136,19 @@ int main(int argc, char **argv)
 		client_app_argv[i] = client_app_args_opt[i - 1];
 	client_app_argv[n_opts + 1] = NULL;
 
+	/* Check if running on X11 and quit if not. */
+	display = gdk_display_get_default();
+	if (!GDK_IS_X11_DISPLAY(display)) {
+		g_free(client_app_argv[0]);
+		g_critical("No X11 display found. Quitting.");
+		return 2;
+	}
+
 	gtk_init(&argc, &argv);
 
 	if (tray_dbus_server_check_running(toggle_window)) {
 		g_debug("Another instance of the tray-icon is already running");
+		g_free(client_app_argv[0]);
 		return 0;
 	}
 	/* Try to find the client application window; spawn a new Spotify
