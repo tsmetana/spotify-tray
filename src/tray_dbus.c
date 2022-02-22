@@ -38,20 +38,18 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
 		if (!gdk_window_is_visible(client_window)) {
 			gdk_window_show(client_window);
 		}
-		g_dbus_method_invocation_return_value(invocation, NULL);
 	} else if (g_strcmp0(method_name, TRAY_HIDE_WIN_METHOD) == 0) {
 		if (gdk_window_is_visible(client_window)) {
 			gdk_window_hide(client_window);
 		}
-		g_dbus_method_invocation_return_value(invocation, NULL);
 	} else if (g_strcmp0(method_name, TRAY_TOGGLE_WIN_METHOD) == 0) {
 		if (gdk_window_is_visible(client_window)) {
 			gdk_window_hide(client_window);
 		} else {
 			gdk_window_show(client_window);
 		}
-		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
+	g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
 static void on_bus_acquired(GDBusConnection *connection,
