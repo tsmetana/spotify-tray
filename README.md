@@ -1,7 +1,7 @@
 Spotify tray
 ============
 
-Adds a tray icon to the Spotify Linux client application.
+Adds a tray icon to the Spotify Linux client application. Only compatible with Xorg (see #35 for more details).
 
 Features:
 * Basic playback control through right-click menu
