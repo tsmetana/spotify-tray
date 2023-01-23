@@ -80,6 +80,8 @@ static void on_activate(GtkStatusIcon *icon, gpointer user_data)
 	if (gdk_window_get_state(client_window) &
 			(GDK_WINDOW_STATE_ICONIFIED|GDK_WINDOW_STATE_WITHDRAWN))
 		gdk_window_deiconify(client_window);
+	/* Raise the window too -- this has no effect when hiding */
+	gdk_window_raise(client_window);
 }
 
 /* Contructs the tooltip showing some info about current track.
