@@ -8,6 +8,13 @@ Features:
 * Basic playback control through right-click menu
 * Hiding the main client window ("minimize to tray")
 
+XWayland
+------------
+In order to run Spotify tray under Wayland you will need to force X11 backend of GDK like so:
+```sh
+GDK_BACKEND=x11 spotify-tray
+```
+
 Installation
 ------------
 
