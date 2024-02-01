@@ -1,4 +1,4 @@
-Name:		spotify-tray
+Name:		@PACKAGE_NAME@
 Version:	@VERSION@
 Release:	1%{?dist}
 Summary:	Tray icon for the Spotify client application
