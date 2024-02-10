@@ -19,7 +19,7 @@ Installation
 ------------
 
 * Clone this repository
-* `./autogen.sh`
+* `autoreconf -ivf`
 * `./configure`
 * `make`
 * Optionally `make install` will put the resulting binary to `/usr/local/bin`
